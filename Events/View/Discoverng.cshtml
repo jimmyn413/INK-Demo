@@ -1,0 +1,1081 @@
+﻿
+@{
+    ViewBag.Title = "Event Discover";
+    Layout = "~/Views/Shared/_LayoutMain.cshtml";
+}
+
+<style>
+    .angular-google-map-container {
+        height: 400px;
+    }
+
+
+    .eTitle a {
+        font-size: 1.5em;
+        text-decoration: none;
+        color: #686868;
+    }
+
+
+        .eTitle a:hover {
+            color: #686868;
+            text-decoration: underline;
+        }
+
+
+    .gm-style-iw {
+        overflow: auto !important;
+        max-width: 300px;
+        min-height: 75px;
+        max-height: 175px;
+    }
+
+        .gm-style-iw > div {
+            overflow: auto !important;
+            max-width: 300px;
+            min-height: 75px;
+            max-height: 175px;
+        }
+
+
+    .markerPop > a {
+        font-size: .9em;
+        overflow: hidden;
+    }
+
+
+    .markerPop > p {
+        font-size: .7em;
+        overflow: hidden;
+    }
+
+
+    /* GRID */
+
+    .grid {
+        list-style: none;
+        background: #fff;
+        border-radius: 6px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        -webkit-transition: all 0.6s ease-out;
+        transition: all 0.6s ease-out;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    }
+
+
+    .grid-img {
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+        width: 100%;
+        vertical-align: middle;
+        -webkit-transition: opacity 0.6s ease-out;
+        transition: opacity 0.6s ease-out;
+        background-color: #fff;
+        opacity: 0;
+        visibility: hidden;
+    }
+
+
+        .grid-img.img-loaded {
+            visibility: visible;
+            opacity: 1;
+        }
+
+    /*TOP BUTTONS*/
+
+
+    .button-margin {
+        display: inline-block;
+        margin-top: 7.5px;
+    }
+
+
+    .create-evt {
+        width: 120px;
+        margin-left: 1.5px;
+        margin-top: -70px;
+    }
+
+
+    .nearby-evt {
+        width: 120px;
+        margin-left: 1.5px;
+        margin-top: -70px;
+    }
+
+
+    .search-size {
+        width: 250px;
+        margin: 2px;
+        margin-top: 2.5px;
+    }
+
+
+    .zip-size {
+        width: 250px;
+        margin: 2px;
+        margin-top: 2.5px;
+    }
+
+
+    .submit-btn {
+        width: 80px;
+        margin: 15px;
+        margin-top: 2.5px;
+    }
+
+
+    .rec-size {
+        width: 170px;
+        margin-top: 2.5px;
+    }
+
+
+    /*BODY & FOOTER*/
+
+
+    .main-title {
+        display: inline-block;
+        margin-top: 10.5px;
+    }
+
+
+    .map-title {
+        display: inline-block;
+    }
+
+
+    .map {
+        display: inline-block;
+        margin-top: 10.5px;
+    }
+
+
+    a .group-Panel:hover {
+        text-decoration: none;
+    }
+
+
+    input.groupNameError.ng-invalid {
+        border: 1px solid #f00;
+    }
+
+
+    .textSize {
+        height: 50px;
+    }
+
+
+    [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+        display: none !important;
+    }
+
+
+    .show-button.span-100 {
+        display: block !important;
+        width: 100% !important;
+        text-align: center !important;
+        padding: 9px !important;
+    }
+
+
+    .show-button {
+        cursor: pointer;
+        text-decoration: none !important;
+        -webkit-box-orient: horizontal;
+        -webkit-box-direction: normal;
+        flex-direction: row;
+        -webkit-box-pack: center;
+        justify-content: center;
+        -webkit-box-align: center;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        border-radius: 3px;
+        font-size: 16px;
+        font-weight: 600;
+        min-height: 40px;
+        outline: 0;
+        vertical-align: middle;
+        line-height: 1;
+        margin-bottom: 16px;
+        stroke: transparent;
+        fill: rgba(0,0,0,.87);
+        background: #fff;
+    }
+
+
+        .button:hover {
+            background-color: rgb(250, 247, 247);
+        }
+
+
+    .grow:hover {
+        -webkit-transform: scale(1.1);
+        -ms-transform: scale(1.1);
+        transform: scale(1.1);
+        z-index: 1;
+        position: relative;
+    }
+</style>
+
+<section>
+    <!-- Page content-->
+    <div class="content-wrapper" data-ng-controller="eventsController as events" id="eventsController">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4>Search</h4>
+                <div class="button-margin pull-right">
+                    <a type="button" class="mb-sm btn btn-default btn-oval create-evt " href="/events/create/">Create Event</a>
+                    <button type="button" class="mb-sm btn btn-default btn-oval nearby-evt" ng-click="events.SearchEvents()">Nearby Events</button>
+                </div>
+            </div>
+            <div class="panel-body">
+
+                <form id="eventForm" name="events.eventForm" data-ng-keyup="events.Search()" novalidate>
+                    <input type="text"
+                           class="pull-left form-control form-control-rounded search-size"
+                           placeholder="Search by events or tags..."
+                           ng-class="{'error': events.showNewEventErrors && !events.eventForm.searchString.$valid}"
+                           name="searchString"
+                           id="searchString"
+                           ng-model="events.searchString">
+                    <input type="text"
+                           class="pull-left form-control form-control-rounded zip-size"
+                           placeholder="Enter Zip..."
+                           ng-class="{'error': events.showNewEventErrors && !events.eventForm.zipCode.$valid}"
+                           name="zipCode"
+                           id="zipCode"
+                           ng-model="events.zipCode">
+                    <div role="alert" class="help-inline error">
+                        <span class="error" ng-show="events.showNewEventErrors && events.eventForm.zipCode.$error.minlength">ZipCode must be 5 characters</span>
+                        <span class="error" ng-show="events.showNewEventErrors && events.eventForm.zipCode.$error.maxlength">ZipCode must be 5 characters</span>
+                    </div>
+                    <button type="submit" class="mb-sm btn btn-oval btn-inverse submit-btn">Search</button>
+                </form>
+
+            </div>
+        </div>
+
+        <!--MAP-->
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h4 class="map-title">Search Nearby Events</h4>
+                <a href="#" data-tool="panel-collapse" data-toggle="tooltip" title="" class="pull-right map" data-original-title="Collapse Panel">
+                    <em class="fa fa-minus"></em>
+                </a>
+            </div>
+            <div class="panel-wrapper collapse in" aria-expanded="true">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div id="map_canvas" class="angular-google-map-container">
+                                <ui-gmap-google-map id="customMap" center="events.map.center" zoom="events.map.zoom" draggable="true" options="events.options">
+                                    <ui-gmap-markers models="events.eventMarkers"
+                                                     coords="'self'"
+                                                     icon="'events.selectedMarker.icon'"
+                                                     click="events.onMarkerClick">
+                                        <ui-gmap-windows show="'showWindow'" closeClick="'closeClick'" ng-cloak>
+                                            <div ng-non-bindable>
+                                                <div class="col-md-4">
+                                                    <img src="{{fullUrl}}" width="60" height="60" /><br />
+                                                </div>
+                                                <div class="col-md-8 markerPop">
+                                                    <a href="/events/details/{{id}}">{{title}}</a>
+                                                    <p>
+                                                        {{address}}<br />
+                                                        {{city}}, {{state}} {{zipCode}}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </ui-gmap-windows>
+                                    </ui-gmap-markers>
+                                </ui-gmap-google-map>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--ALL GROUPS-->
+        <div>
+            <ul class="dynamic-grid" angular-grid="events.items" grid-width="300" gutter-size="10" angular-grid-id="gallery" refresh-on-img-load="true">
+                <li data-ng-cloak data-ng-repeat="ev in events.items track by ev.id" class="grid grow">
+                    <a data-ng-href="/events/details/{{ev.id}}">
+                        <img data-ng-if="ev.media" src="{{ev.media.fullUrl}}" class="grid-img" alt="" data-actual-width="400" data-actual-height="400">
+                        <img data-ng-if="!ev.media" src="https://i.imgur.com/ZOmi5R1.png" class="grid-img" alt="" data-actual-width="400" data-actual-height="400">
+                    </a>
+                    <div class="text-center">
+                        <div class="title ng-binding">
+                            <h2><a href="/events/discoverng/{{ev.id}}">{{ev.title | limitTo: 17 }}{{ev.title.length > 17 ? '...' : ''}}</a></h2>
+                        </div>
+                        <div class="uploaded-date ng-binding">
+                            <h4>
+                                {{ev.start | date: 'd'}} {{ev.start | date: 'MMM'}}, {{ev.start | date: 'h:mm a'}}
+                            </h4>
+                            <p data-ng-if="ev.location.city">
+                                <h4>
+                                    {{ev.location.city}}, {{ev.location.state}} {{ev.location.zipCode}}
+                                </h4>
+                            </p>
+                            <p data-ng-if="!ev.location.city">
+                                Location N/A
+                            </p>
+                        </div>
+                        <div>
+                            <p>
+                                <h3>
+                                    Organizer:
+                                    <a data-ng-if="ev.organizer.avatar" data-ng-href="/user/profile/{{ev.organizer.userId}}" data-toggle="tooltip" data-title="Team leader" class="inline" tooltip="{{ev.organizer.profileName}} {{ev.organizer.profileLastName}}">
+                                        <img data-ng-src="{{ev.organizer.avatar.fullUrl}}" class="img-circle thumb24" />
+                                    </a>
+                                    <a data-ng-if="!ev.organizer.avatar" data-ng-href="/user/profile/{{ev.organizer.userId}}" data-toggle="tooltip" data-title="Team leader" class="inline" tooltip="{{ev.organizer.profileName}} {{ev.organizer.profileLastName}}">
+                                        <img src="http://ipadwallpaper.net/wp-content/uploads/2011/03/darth-vader.jpg" class="img-circle thumb24" />
+                                    </a>
+                                </h3>
+                            </p>
+                        </div>
+                    </div>
+
+
+                </li>
+            </ul>
+
+            <!--<div class="row event-container">
+                    <div class="col-lg-4" data-ng-repeat="ev in events.items track by ev.id">
+                        <div class="panel widget">
+                            <div class="row row-table row-flush">
+                                <div class="col-xs-4">
+                                    <picture class="lateral-picture">
+                                        <img ng-if="ev.media" ng-src="{{ev.media.fullUrl}}" alt="">
+                                        <img ng-if="!ev.media.fullUrl" ng-src="https://i.imgur.com/ZOmi5R1.png" border="0" alt="Null">
+                                    </picture>
+                                </div>
+                                <div class="col-xs-8 align-middle p-lg">
+                                    <div class="pull-right">
+                                        <a href="#" class="btn btn-inverse btn-xs" ng-click="events.openModal(ev)">RSVP</a>
+                                    </div>
+                                    <p class="eTitle">
+                                        <a ng-href="/events/details/{{ev.id}}">
+                                            {{ev.title | limitTo: 17 }}{{ev.title.length > 17 ? '...' : ''}}
+                                        </a>
+                                    </p>
+                                    <p>
+                                        <span class="text-lg" style="font-size: 2em;">
+                                            {{ev.start | date: 'd'}}
+                                        </span>
+                                        {{ev.start | date: 'MMM'}}, {{ev.start | date: 'h:mm a'}}
+                                    </p>
+                                    <p ng-if="ev.location.city">
+                                        {{ev.location.city}}, {{ev.location.state}} {{ev.location.zipCode}}
+                                    </p>
+                                    <p ng-if="!ev.location.city">
+                                        Location N/A
+                                    </p>
+                                    <p>
+                                        Organizer:
+                                        <a ng-if="ev.organizer.avatar" ng-href="/user/profile/{{ev.organizer.userId}}" data-toggle="tooltip" data-title="Team leader" class="inline" tooltip="{{ev.organizer.profileName}} {{ev.organizer.profileLastName}}">
+                                            <img ng-src="{{ev.organizer.avatar.fullUrl}}" class="img-circle thumb24" />
+                                        </a>
+                                        <a ng-if="!ev.organizer.avatar" ng-href="/user/profile/{{ev.organizer.userId}}" data-toggle="tooltip" data-title="Team leader" class="inline" tooltip="{{ev.organizer.profileName}} {{ev.organizer.profileLastName}}">
+                                            <img src="http://ipadwallpaper.net/wp-content/uploads/2011/03/darth-vader.jpg" class="img-circle thumb24" />
+                                        </a>
+                                    </p>
+                                    <ul class="list-inline">
+                                        <li>
+                                            Attending({{ev.countYes}}):
+                                        </li>
+                                        <li class="inline" data-ng-repeat="att in ev.attendees track by att.userId">
+                                            <a ng-href="/user/profile/{{att.userId}}" tooltip="{{att.profileName}} {{att.profileLastName}}">
+                                                <img ng-src="{{att.avatar.fullUrl}}" alt="project member" class="img-circle thumb24">
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>-->
+
+            <button type="button" class="show-button span-100" data-ng-click="events.loadMore()">Show More</button>
+        </div>
+    </div>
+</section>
+
+
+<!-- Modal -->
+<!--<script type="text/ng-template" id="modalContent.html">
+    <div class="modal-header">
+        <h3 class="modal-title">{{mc.event.title}}</h3>
+    </div>
+    <div class="modal-body">
+        <ul>
+            <li>
+                <a class="btn btn-primary" data-ng-click="mc.rsvp(1)">Attending</a>
+            </li>
+            <li>
+                <a class="btn btn-primary" data-ng-click="mc.rsvp(3)">Maybe</a>
+            </li>
+            <li>
+                <a class="btn btn-primary" data-ng-click="mc.rsvp(2)">Not Attending</a>
+            </li>
+        </ul>
+    </div>
+</script>-->
+
+
+@section pageInitScripts{
+    <script src="//maps.googleapis.com/maps/api/js?key=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"></script>
+    <script src="~/Scripts/bower_components/lodash/dist/lodash.min.js"></script>
+    <script src="~/Scripts/bower_components/angular/angular.min.js"></script>
+    <script src="~/Scripts/bower_components/angular-simple-logger/dist/angular-simple-logger.min.js"></script>
+    <script src="~/Scripts/bower_components/angular-google-maps/dist/angular-google-maps.min.js"></script>
+    <script src="~/Scripts/sabio/modules/sabio.module.maps.js"></script>
+
+
+    <script src="~/Scripts/bower_components/angulargrid/angulargrid.js"></script>
+    <script src="~/Scripts/sabio/modules/sabio.module.angulargrid.js"></script>
+}
+
+@section scripts{
+    <script src="~/Scripts/sabio.services.events.js"></script>
+    <script src="~/Scripts/sabio.services.userEvents.js"></script>
+    <script src="~/Scripts/bower_components/moment/moment.js"></script>
+    <script src="~/Scripts/sabio.services.tags.js"></script>
+    <script src="~/Scripts/sabio.services.users.js"></script>
+    <script type="text/javascript">
+
+
+        //user service
+        (function () {
+            "use strict";
+            angular.module(APPNAME)
+                .factory('$userService', $userServiceFactory);
+
+            $userServiceFactory.$inject = ['$baseService'];
+
+            function $userServiceFactory($baseService) {
+                var userServiceObject = sabio.services.users;
+                var newService = $baseService.merge(true, {}, userServiceObject, $baseService);
+                return newService;
+            }
+        })();
+
+        //EVENTS SERVICE
+        (function () {
+            "use strict";
+            angular.module(APPNAME)
+                .factory('$eventsService', eventsServiceFactory);
+            eventsServiceFactory.$inject = ['$baseService', '$sabio'];
+
+            function eventsServiceFactory($baseService, $sabio) {
+                var sabioEventsObject = sabio.services.events;
+                var newService = $baseService.merge(true, {}, sabioEventsObject, $baseService);
+
+                return newService;
+            }
+
+        })();
+
+        //USEREVENTS SERVICE
+        (function () {
+            "use strict";
+
+            angular.module(APPNAME)
+                .factory('$userEventsService', userEventsService);
+            userEventsService.$inject = ['$baseService', '$sabio'];
+
+            function userEventsService($baseService, $sabio) {
+                var sabioUserEventsObject = sabio.services.userEvents;
+                var newService = $baseService.merge(true, {}, sabioUserEventsObject, $baseService);
+
+                return newService;
+            }
+
+        })();
+
+        //EVENTS CONTROLLER
+        (function () {
+            "use strict";
+
+            angular.module(APPNAME)
+                .controller('eventsController', eventsController);
+
+            eventsController.$inject = ['$scope', '$baseController', "$eventsService", "$userService"];
+
+            function eventsController(
+                $scope
+                , $baseController
+                    , $eventsService
+                        , $userService) {
+
+                var vm = this;
+                vm.headingInfo = "Discover Events";
+                vm.items = null;
+                vm.selectedEvent = null;
+                vm.pageSize = 24;
+                vm.pageNumber = 1;
+                vm.lat = null;
+                vm.lon = null;
+                vm.distance = null;
+                vm.searchString = null;
+                vm.userItem = null;
+                vm.eventForm = null;
+                vm.addressId = null;
+                vm.address = {};
+                vm.tagInfo = null;
+                vm.selectedMarker = null;
+                vm.zipCode = null;
+                vm.geocoder = null;
+                //vm.geocodeResponse = null;
+                vm.showNewEventErrors = false;
+                vm.eventForm = null;
+                vm.address = {};
+                vm.eventMarkers = [];
+                vm.map = {
+                    center: {
+                        latitude: 39.12346,
+                        longitude: -94.74419
+                    },
+                    zoom: 4,
+                    bounds: {}
+                };
+                var styleArray = [
+    {
+        featureType: "administrative",
+        elementType: "labels.text",
+        stylers: [
+            {
+                weight: "2"
+            },
+            {
+                visibility: "on"
+            }
+        ]
+    },
+    {
+        featureType: "administrative",
+        elementType: "labels.text.fill",
+        stylers: [
+            {
+                color: "#444444"
+            },
+            {
+                visibility: "on"
+            },
+            {
+                weight: "2.00"
+            }
+        ]
+    },
+    {
+        featureType: "administrative",
+        elementType: "labels.text.stroke",
+        stylers: [
+            {
+                weight: "2.00"
+            },
+            {
+                visibility: "on"
+            }
+        ]
+    },
+    {
+        featureType: "administrative.country",
+        elementType: "labels.text",
+        stylers: [
+            {
+                visibility: "on"
+            },
+            {
+                weight: "2"
+            }
+        ]
+    },
+    {
+        featureType: "administrative.province",
+        elementType: "labels.text",
+        stylers: [
+            {
+                visibility: "on"
+            },
+            {
+                weight: "2"
+            }
+        ]
+    },
+    {
+        featureType: "administrative.locality",
+        elementType: "labels",
+        stylers: [
+            {
+                visibility: "on"
+            }
+        ]
+    },
+    {
+        featureType: "administrative.locality",
+        elementType: "labels.text",
+        stylers: [
+            {
+                weight: "2"
+            },
+            {
+                visibility: "on"
+            }
+        ]
+    },
+    {
+        featureType: "landscape",
+        elementType: "all",
+        stylers: [
+            {
+                color: "#f2f2f2"
+            }
+        ]
+    },
+    {
+        featureType: "landscape",
+        elementType: "labels.text",
+        stylers: [
+            {
+                visibility: "on"
+            },
+            {
+                weight: "2"
+            }
+        ]
+    },
+    {
+        featureType: "poi",
+        elementType: "all",
+        stylers: [
+            {
+                visibility: "off"
+            }
+        ]
+    },
+    {
+        featureType: "poi",
+        elementType: "labels.text",
+        stylers: [
+            {
+                weight: "2"
+            }
+        ]
+    },
+    {
+        featureType: "road",
+        elementType: "all",
+        stylers: [
+            {
+                saturation: -50
+            },
+            {
+                lightness: 10
+            }
+        ]
+    },
+    {
+        featureType: "road.highway",
+        elementType: "all",
+        stylers: [
+            {
+                visibility: "simplified"
+            }
+        ]
+    },
+    {
+        featureType: "road.highway",
+        elementType: "geometry.fill",
+        stylers: [
+            {
+                color: "#808080"
+            }
+        ]
+    },
+    {
+        featureType: "road.highway",
+        elementType: "labels.icon",
+        stylers: [
+            {
+                visibility: "on"
+            }
+        ]
+    },
+    {
+        featureType: "road.arterial",
+        elementType: "geometry.fill",
+        stylers: [
+            {
+                color: "#a8ad00"
+            }
+        ]
+    },
+    {
+        featureType: "road.arterial",
+        elementType: "labels.icon",
+        stylers: [
+            {
+                visibility: "off"
+            }
+        ]
+    },
+    {
+        featureType: "road.local",
+        elementType: "geometry.fill",
+        stylers: [
+            {
+                color: "#5b7f95"
+            }
+        ]
+    },
+    {
+        featureType: "transit",
+        elementType: "all",
+        stylers: [
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
+        featureType: "water",
+        elementType: "all",
+        stylers: [
+            {
+                color: "#478ba7"
+            },
+            {
+                visibility: "on"
+            }
+        ]
+    },
+    {
+        featureType: "water",
+        elementType: "geometry.fill",
+        stylers: [
+            {
+                color: "#5b7f95"
+            }
+        ]
+    },
+    {
+        featureType: "water",
+        elementType: "labels.text.fill",
+        stylers: [
+            {
+                color: "#ffffff"
+            }
+        ]
+    }
+                ];
+
+                vm.options = {
+                    styles: styleArray
+                };
+
+                vm.$eventsService = $eventsService;
+                vm.$scope = $scope;
+                //vm.$uibModal = $uibModal;
+                vm.$userService = $userService;
+
+                vm.receiveUserItem = _receiveUserItem;
+                vm.receiveItems = _receiveItems;
+                vm.selectEvent = _selectEvent;
+                vm.onEventError = _onEventError;
+                //vm.openModal = _openModal;
+                vm.SearchEvents = _SearchEvents;
+                vm.onMarkerClick = _onMarkerClick;
+                vm.codeAddress = _codeAddress;
+                vm.Search = _Search;
+                vm.loadMore = _loadMore;
+
+
+                $baseController.merge(vm, $baseController);
+                vm.notify = vm.$eventsService.getNotifier($scope);
+
+                _render();
+
+                function _render() {
+                    vm.geocoder = new google.maps.Geocoder();
+
+                    var payload = {};
+                    payload.PageSize = vm.pageSize;//check
+                    payload.PageNumber = vm.pageNumber;//check
+                    payload.Lat = vm.lat;
+                    payload.Lon = vm.lon;
+                    payload.Distance = vm.distance;
+                    payload.SearchString = vm.searchString;
+
+                    vm.$eventsService.discover(payload, vm.receiveItems, vm.onEventError);
+                }
+
+
+                function _receiveItems(data) {
+
+                    console.log(data.items);
+
+                    if (data.items) {
+                        if (!vm.eventMarkers)
+                            vm.eventMarkers = [];
+
+                        if (!vm.items)
+                            vm.items = [];
+
+                        for (var i = 0; i < data.items.length; i++) {
+                            var event = data.items[i];
+                            vm.items.push(event);
+                            if (event.location.latitude) {
+
+                                var markerEvent = {};
+                                markerEvent.latitude = event.location.latitude;
+                                markerEvent.longitude = event.location.longitude;
+                                markerEvent.title = event.title;
+                                markerEvent.id = event.id;
+                                markerEvent.address = event.location.address;
+                                markerEvent.city = event.location.city;
+                                markerEvent.state = event.location.state;
+                                markerEvent.zipCode = event.location.zipCode;
+                                if (event.media) {
+                                    markerEvent.fullUrl = event.media.fullUrl;
+                                    markerEvent.icon = {};
+                                    markerEvent.icon.url = "http://i.imgur.com/G47W5yH.png";
+                                    markerEvent.icon.scaledSize = new google.maps.Size(18, 28);
+                                }
+
+                                if (!event.media) {
+                                    markerEvent.fullUrl = "https://i.imgur.com/ZOmi5R1.png";
+                                    markerEvent.icon = {};
+                                    markerEvent.icon.url = "http://i.imgur.com/G47W5yH.png";
+                                    markerEvent.icon.scaledSize = new google.maps.Size(18, 28);
+                                }
+                                vm.eventMarkers.push(markerEvent);
+                            }
+
+                        }
+
+                        vm.notify(function () {
+
+                        });
+                    }
+                    else {
+                        _SearchError();
+                    }
+
+                }
+
+
+                function _receiveUserItem(data) {
+                    console.log(data.item.location);
+                    if (data.item.location) {
+                        vm.notify(function () {
+                            vm.userItem = data.item;
+                            vm.lat = data.item.location.latitude;
+                            vm.lon = data.item.location.longitude;
+                            vm.distance = 25;
+                            vm.map.center.latitude = data.item.location.latitude;
+                            vm.map.center.longitude = data.item.location.longitude;
+                            vm.map.zoom = 10;
+                        });
+
+                        var payload = {};
+                        payload.PageSize = vm.pageSize;
+                        payload.PageNumber = vm.pageNumber;
+                        payload.Lat = vm.lat;
+                        payload.Lon = vm.lon;
+                        payload.Distance = vm.distance;
+                        payload.SearchString = vm.searchString;
+
+                        vm.eventMarkers = [];
+                        vm.items = [];
+
+                        vm.$eventsService.discover(payload, vm.receiveItems, _SearchError);
+                    }
+                    else {
+                        _SearchError();
+                    }
+                }
+
+
+                function _onMarkerClick(markerClicked, eventName, markerObject) {
+                    console.log(markerClicked, eventName, markerObject);
+
+                    vm.selectedMarker = markerObject;
+                    console.log(vm.selectedMarker);
+                }
+
+
+                function _SearchError() {
+                    vm.$alertService.warning("No Results Found!");
+                }
+
+
+                function _SearchEvents() {
+
+                    vm.$userService.getCurrent(vm.receiveUserItem, vm.onEventError);
+                }
+
+
+                //function _openModal(ev) {
+                //    var modalInstance = vm.$uibModal.open({
+                //        animation: true,
+                //        templateUrl: 'modalContent.html',
+                //        controller: 'modalController as mc',
+                //        size: 'sm',
+                //        resolve: {
+                //            event: function () {
+                //                return ev;
+                //            }
+                //        }
+                //    });
+
+                //    modalInstance.result.then(function () {
+                //        _render();
+                //    }, function () {
+                //        console.log('Modal dismissed at: ' + new Date());
+                //    });
+                //}
+
+
+                function _selectEvent(anEv) {
+                    console.log(anEv);
+                    vm.selectedEvent = anEv;
+                }
+
+
+                function _onEventError(jqXhr, error) {
+                    console.error(error);
+                }
+
+
+                function _Search() {
+
+                    vm.eventMarkers = [];
+                    vm.items = [];
+
+                    if (vm.zipCode) {
+                        var addressString = vm.zipCode;
+                        vm.codeAddress(addressString);
+                    }
+                    else {
+                        _render();
+                    }
+                }
+
+
+                function _codeAddress(address) {
+
+                    vm.geocoder.geocode({ 'address': address }, _onCodeAddress);
+                }
+
+
+                function _onCodeAddress(results, status) {
+
+                    if (status == google.maps.GeocoderStatus.OK) {
+
+                        var geometry = results[0].geometry;
+                        var loc = geometry.location;
+
+                        console.log("got location data from API", loc);
+
+                        var lat = loc.lat();
+                        var lon = loc.lng();
+
+                        console.log("found coordinates in reply -> (%s, %s)", lat, lon);
+
+                        vm.notify(function () {
+                            vm.lat = lat;
+                            vm.lon = lon;
+                            vm.distance = 25;
+                            vm.map.center.latitude = lat;
+                            vm.map.center.longitude = lon;
+                            vm.map.zoom = 10;
+                            _render();
+                        });
+
+                    } else {
+                        alert('Geocode was not successful for the following reason: ' + status);
+                    }
+                }
+
+
+                //Pagination
+                function _loadMore() {
+                    console.log('loadmore fired');
+                    vm.pageNumber++;
+
+                    var payload = {};
+                    payload.PageSize = vm.pageSize;
+                    payload.PageNumber = vm.pageNumber;
+                    payload.Lat = vm.lat;
+                    payload.Lon = vm.lon;
+                    payload.Distance = vm.distance;
+                    payload.SearchString = vm.searchString;
+
+                    vm.$eventsService.discover(payload, vm.receiveItems, vm.onEventError);
+                }
+            }
+        })();
+
+        //MODAL CONTROLLER
+        /*(function () {
+            "use strict";
+
+            angular.module(APPNAME)
+                .controller('modalController', ModalController);
+
+            ModalController.$inject = ['$scope', '$baseController', '$userEventsService', '$uibModalInstance', 'event'];
+
+            function ModalController(
+                $scope
+                , $baseController
+                , $userEventsService
+                , $uibModalInstance
+                , event
+                ) {
+
+                var vm = this;
+
+                $baseController.merge(vm, $baseController);
+                vm.status = 0;
+                vm.$scope = $scope;
+                vm.$uibModalInstance = $uibModalInstance;
+                vm.onEventError = _onEventError;
+                vm.rsvp = _rsvp;
+                vm.event = event;
+                vm.$userEventsService = $userEventsService;
+                vm.rsvpSuccess = _rsvpSuccess;
+
+                vm.ok = function () {
+                    vm.$uibModalInstance.close();
+                };
+
+                vm.cancel = function () {
+                    vm.$uibModalInstance.dismiss('cancel');
+                };
+
+                function _onEventError(jqXhr, error) {
+                    console.error(error);
+                };
+
+                function _rsvp(status) {
+                    var payload = {};
+                    payload.RsvpStatus = status;
+                    payload.EventId = event.id;
+                    vm.$userEventsService.post(payload, vm.rsvpSuccess, vm.onEventError);
+                };
+
+                function _rsvpSuccess() {
+
+                    vm.$alertService.success("Thank you for your RSVP!");
+
+                    vm.ok();
+                }
+
+            }
+
+        })();*/
+    </script>
+}
