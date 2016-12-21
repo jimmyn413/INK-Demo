@@ -1,0 +1,66 @@
+﻿<style>
+    .breakword {
+        word-break: break-word !important;
+    }
+
+    .breakall {
+        word-break: break-all !important;
+    }
+</style>
+
+<div class="panel panel-default">
+    <div class="panel-body">
+
+
+        <div class="card-container" ng-class="flip">
+            <div class="card">
+                <div class="front" style="background-color:lightslategrey">
+                    <br /><br />
+                    <center><img class="img-circle thumb128 img-responsive" ng-src="{{person.avatar.filePath ? person.avatar.fullUrl : '//sabio-training.s3.amazonaws.com/C20/237d8468-2c45-4d19-8b94-fd28fb0a711d.png'}}" alt="//sabio-training.s3.amazonaws.com/C20/237d8468-2c45-4d19-8b94-fd28fb0a711d.png"/></center>
+
+                    <div class="content">
+                        <div class="main">
+                            <h3 class="name">{{person.profileName || 'First'}} {{person.profileLastName || 'Lastname'}}</h3>
+                            <div class="row">
+                                <br /><br />
+                                <div class="col-xs-6">
+
+                                    <p class="text-left breakall">{{person.profileEmail || 'Email'}}</p>
+                                    <p class="text-left">{{person.profilePhone || 'Phone'}}</p>
+                                </div>
+                                <div class="col-xs-6">
+                                    <p class="text-left breakword">{{person.profileCompany || 'Company'}}</p>
+                                    <p class="text-left breakall">{{person.profileWebsite || 'Website'}}</p>
+                                </div>
+                            </div>
+
+
+
+                        </div>
+                        <div class="footer">
+                            <div class="rating" ng-click="rotateCard()">
+                                <button><i class="fa fa-mail-forward"></i> QR Code</button>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- end front panel -->
+                <div class="back" ng-click="unRotateCard()">
+                    <div class="header">
+                        <h5 class="motto">{{person.tagline || 'Tagline'}}</h5>
+                    </div>
+                    <div class="content">
+                        <div class="main">
+
+                            <center><img height="300" width="300" src="http://www.qrstuff.com/images/sample.png" /></center>
+
+                            <center><button>Go Back</button></center>
+                        </div>
+                    </div>
+
+                </div> <!-- end back panel -->
+            </div> <!-- end card -->
+        </div> <!-- end card-container -->
+
+    </div>
+</div>
+
